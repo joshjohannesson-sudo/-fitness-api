@@ -1,6 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
-const client = new Anthropic();
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -14,20 +16,18 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No image provided" });
     }
 
-    // Call Claude API with vision capability
-    const response = await client.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+    // Call OpenAI API with vision capability
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-vision-preview",
       max_tokens: 1024,
       messages: [
         {
           role: "user",
           content: [
             {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: "image/jpeg",
-                data: imageBase64,
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${imageBase64}`,
               },
             },
             {
@@ -40,13 +40,13 @@ export default async function handler(req, res) {
     });
 
     // Extract text from response
-    const textContent = response.content.find((block) => block.type === "text");
+    const textContent = response.choices[0].message.content;
     if (!textContent) {
       return res.status(500).json({ error: "No text in response" });
     }
 
-    // Parse JSON from Claude's response
-    const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
+    // Parse JSON from OpenAI's response
+    const jsonMatch = textContent.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return res.status(500).json({ error: "Could not parse food data" });
     }
