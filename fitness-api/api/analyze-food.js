@@ -1,7 +1,6 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const openai =https://fitness-9usiub4ho-joshs-projects-065dbcb2.vercel.app,
 });
 
 export default async function handler(req, res) {
